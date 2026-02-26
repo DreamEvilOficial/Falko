@@ -49,15 +49,17 @@ export async function POST(request: Request) {
     let validPassword = false
     let shouldMigratePassword = false;
 
+    // Try password_hash first if it exists
     if (user.password_hash) {
       validPassword = bcrypt.compareSync(password, user.password_hash)
     }
 
+    // If password_hash doesn't exist or failed, try contrasena field
     if (!validPassword && user.contrasena) {
       if (user.contrasena.startsWith('$2a$') || user.contrasena.startsWith('$2b$')) {
         validPassword = bcrypt.compareSync(password, user.contrasena)
       } else {
-        // Texto plano (solo para desarrollo/migración inicial)
+        // Plain text (legacy or development only)
         validPassword = (password === user.contrasena)
         if (validPassword) {
             shouldMigratePassword = true;

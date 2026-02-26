@@ -51,22 +51,48 @@ export async function GET(request: Request) {
       `)
     }
 
+    // Ensure password_hash column exists
+    try {
+      await db.raw('ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password_hash text')
+    } catch (e) {
+      console.warn('⚠️ Could not add password_hash column:', (e as any).message)
+    }
+
     // Check if user exists
     const existing = await db.get('SELECT * FROM usuarios WHERE usuario = ?', [username])
     
     if (existing) {
       // Update password in both fields and role
-      await db.run('UPDATE usuarios SET password_hash = ?, contrasena = ? WHERE usuario = ?', [hashedPassword, password, username])
-      await db.run('UPDATE usuarios SET rol = ? WHERE usuario = ?', ['admin', username])
+      try {
+        await db.run('UPDATE usuarios SET password_hash = ?, contrasena = ? WHERE usuario = ?', [hashedPassword, password, username])
+      } catch (e) {
+        // Fallback if password_hash doesn't exist: only update contrasena
+        console.warn('⚠️ Could not update password_hash, trying contrasena only')
+        await db.run('UPDATE usuarios SET contrasena = ? WHERE usuario = ?', [password, username])
+      }
+      await db.run('UPDATE usuarios SET rol = ?, admin = ?, activo = ? WHERE usuario = ?', ['admin', true, true, username])
       
       return NextResponse.json({ message: 'Usuario admin actualizado correctamente', user: username })
     }
     
-    // Create
-    await db.run(
-      'INSERT INTO usuarios (usuario, email, password_hash, contrasena, rol, nombre, fecha_registro, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [username, 'admin@urban.com', hashedPassword, password, 'admin', 'Administrador', new Date().toISOString(), true]
-    )
+    // Create - try with password_hash, fallback without it
+    try {
+      await db.run(
+        'INSERT INTO usuarios (usuario, email, password_hash, contrasena, rol, nombre, activo, admin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [username, 'admin@urban.com', hashedPassword, password, 'admin', 'Administrador', true, true]
+      )
+    } catch (e: any) {
+      // Fallback without password_hash column
+      if ((e.message || '').includes('password_hash')) {
+        console.warn('⚠️ password_hash column does not exist, inserting without it')
+        await db.run(
+          'INSERT INTO usuarios (usuario, email, contrasena, rol, nombre, activo, admin) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [username, 'admin@urban.com', password, 'admin', 'Administrador', true, true]
+        )
+      } else {
+        throw e
+      }
+    }
     
     return NextResponse.json({ message: 'Usuario admin creado correctamente', user: username })
   } catch (error: any) {
