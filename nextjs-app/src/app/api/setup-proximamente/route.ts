@@ -4,8 +4,18 @@ import db from '@/lib/db'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get('secret');
+  if (process.env.NODE_ENV === 'production' && secret !== process.env.SETUP_SECRET) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
     return NextResponse.json({ success: true, message: 'Database not configured - skipping proximamente setup' });
+  }
+  const tbl = await db.get("SELECT to_regclass('public.proximamente_notificaciones') as r");
+  if (!tbl?.r) {
+    // if the table doesn't exist, we'll create it below anyway, so continue
   }
   try {
     // SQL para crear la tabla de notificaciones

@@ -2,9 +2,21 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 
 export async function GET() {
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get('secret');
+  if (process.env.NODE_ENV === 'production' && secret !== process.env.SETUP_SECRET) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
     return NextResponse.json({ success: true, message: 'Database not configured - skipping reviews setup' });
   }
+  // ensure reviews base table exists
+  const tbl = await db.get("SELECT to_regclass('public.resenas') as r");
+  if (!tbl?.r) {
+    return NextResponse.json({ success: false, message: 'La tabla resenas no existe.' });
+  }
+
   try {
     const results = [];
 

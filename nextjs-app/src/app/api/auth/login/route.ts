@@ -45,11 +45,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 })
     }
 
-    // Verificar contraseña (bcrypt o texto plano legacy para migración)
+    // Verificar contraseña: primero revisamos password_hash (bcrypt), luego campo contrasena
     let validPassword = false
     let shouldMigratePassword = false;
 
-    if (user.contrasena) {
+    if (user.password_hash) {
+      validPassword = bcrypt.compareSync(password, user.password_hash)
+    }
+
+    if (!validPassword && user.contrasena) {
       if (user.contrasena.startsWith('$2a$') || user.contrasena.startsWith('$2b$')) {
         validPassword = bcrypt.compareSync(password, user.contrasena)
       } else {

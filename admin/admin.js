@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inicializar Supabase
     if (typeof SupabaseClient !== 'undefined') {
         supabase = new SupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+
         // Verificar sesión existente
         const user = await supabase.getCurrentUser();
         if (user) {
@@ -31,12 +31,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function handleLogin(event) {
     event.preventDefault();
-    
+
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
-    
+
     const result = await supabase.signIn(email, password);
-    
+
     if (result.success) {
         await loadAdminPanel();
     } else {
@@ -46,14 +46,14 @@ async function handleLogin(event) {
 
 async function handleRegister(event) {
     event.preventDefault();
-    
+
     const tiendaNombre = document.getElementById('register-tienda').value;
     const nombre = document.getElementById('register-nombre').value;
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
-    
+
     const result = await supabase.signUp(email, password, tiendaNombre, { nombre });
-    
+
     if (result.success) {
         alert('¡Cuenta creada exitosamente! Por favor, verifica tu email.');
         showLoginForm();
@@ -64,7 +64,7 @@ async function handleRegister(event) {
 
 async function handleLogout() {
     const result = await supabase.signOut();
-    
+
     if (result.success) {
         document.getElementById('auth-container').classList.remove('hidden');
         document.getElementById('admin-panel').classList.add('hidden');
@@ -87,24 +87,24 @@ function showRegisterForm() {
 
 async function loadAdminPanel() {
     const userData = await supabase.loadUserData();
-    
+
     if (!userData) {
         alert('Error al cargar datos del usuario');
         return;
     }
-    
+
     currentUser = userData;
     currentTienda = userData.tiendas;
-    
+
     // Ocultar auth, mostrar panel
     document.getElementById('auth-container').classList.add('hidden');
     document.getElementById('admin-panel').classList.remove('hidden');
-    
+
     // Actualizar UI
     document.getElementById('tienda-nombre').textContent = currentTienda.nombre;
     document.getElementById('user-email').textContent = currentUser.email;
     document.getElementById('user-welcome').textContent = `Hola, ${currentUser.nombre}`;
-    
+
     // Cargar datos iniciales
     await loadDashboardData();
     await loadProductos();
@@ -114,10 +114,10 @@ async function loadDashboardData() {
     // Cargar estadísticas
     const ordenes = await supabase.getOrdenes({ tienda_id: currentTienda.id });
     const productos = await supabase.getProductos({ tienda_id: currentTienda.id });
-    
+
     // Actualizar cards (implementar lógica de cálculo)
     // ...
-    
+
     // Cargar órdenes recientes
     if (ordenes.success && ordenes.data.length > 0) {
         displayRecentOrders(ordenes.data.slice(0, 5));
@@ -126,12 +126,12 @@ async function loadDashboardData() {
 
 function displayRecentOrders(ordenes) {
     const container = document.getElementById('recent-orders');
-    
+
     if (ordenes.length === 0) {
         container.innerHTML = '<p>No hay órdenes recientes.</p>';
         return;
     }
-    
+
     let html = `
         <table class="table">
             <thead>
@@ -145,7 +145,7 @@ function displayRecentOrders(ordenes) {
             </thead>
             <tbody>
     `;
-    
+
     ordenes.forEach(orden => {
         const estadoBadge = getEstadoBadge(orden.estado);
         html += `
@@ -158,7 +158,7 @@ function displayRecentOrders(ordenes) {
             </tr>
         `;
     });
-    
+
     html += '</tbody></table>';
     container.innerHTML = html;
 }
@@ -167,7 +167,7 @@ function displayRecentOrders(ordenes) {
 
 async function loadProductos() {
     const result = await supabase.getProductos({ tienda_id: currentTienda.id });
-    
+
     if (result.success) {
         displayProductos(result.data);
     }
@@ -175,12 +175,12 @@ async function loadProductos() {
 
 function displayProductos(productos) {
     const container = document.getElementById('productos-list');
-    
+
     if (productos.length === 0) {
         container.innerHTML = '<p>No hay productos. Crea tu primer producto.</p>';
         return;
     }
-    
+
     let html = `
         <table class="table">
             <thead>
@@ -195,12 +195,12 @@ function displayProductos(productos) {
             </thead>
             <tbody>
     `;
-    
+
     productos.forEach(producto => {
-        const estadoBadge = producto.activo 
-            ? '<span class="badge badge-success">Activo</span>' 
+        const estadoBadge = producto.activo
+            ? '<span class="badge badge-success">Activo</span>'
             : '<span class="badge badge-danger">Inactivo</span>';
-            
+
         html += `
             <tr>
                 <td><strong>${producto.nombre}</strong></td>
@@ -215,7 +215,7 @@ function displayProductos(productos) {
             </tr>
         `;
     });
-    
+
     html += '</tbody></table>';
     container.innerHTML = html;
 }
@@ -231,7 +231,7 @@ function closeProductModal() {
 
 async function handleProductSubmit(event) {
     event.preventDefault();
-    
+
     const productoData = {
         nombre: document.getElementById('product-name').value,
         precio: parseFloat(document.getElementById('product-price').value),
@@ -240,9 +240,9 @@ async function handleProductSubmit(event) {
         sku: document.getElementById('product-sku').value,
         activo: true
     };
-    
+
     const result = await supabase.createProducto(productoData);
-    
+
     if (result.success) {
         alert('Producto creado exitosamente');
         closeProductModal();
@@ -254,9 +254,9 @@ async function handleProductSubmit(event) {
 
 async function deleteProduct(id) {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-    
+
     const result = await supabase.deleteProducto(id);
-    
+
     if (result.success) {
         alert('Producto eliminado');
         await loadProductos();
@@ -269,20 +269,20 @@ async function deleteProduct(id) {
 
 async function saveConfig(event, tipo) {
     event.preventDefault();
-    
+
     if (tipo === 'mercadopago') {
         const config = {
             mp_public_key: document.getElementById('mp-public-key').value,
             mp_access_token: document.getElementById('mp-access-token').value,
             mp_cvu: document.getElementById('mp-cvu').value
         };
-        
+
         // Actualizar en Supabase
         const result = await supabase.client
             .from('tiendas')
             .update(config)
             .eq('id', currentTienda.id);
-        
+
         if (!result.error) {
             alert('Configuración guardada exitosamente');
         } else {
@@ -293,12 +293,12 @@ async function saveConfig(event, tipo) {
             whatsapp: document.getElementById('whatsapp').value,
             instagram: document.getElementById('instagram').value
         };
-        
+
         const result = await supabase.client
             .from('tiendas')
             .update(config)
             .eq('id', currentTienda.id);
-        
+
         if (!result.error) {
             alert('Contacto guardado exitosamente');
         } else {
@@ -314,21 +314,21 @@ function showSection(sectionName) {
     document.querySelectorAll('.content-section').forEach(section => {
         section.classList.remove('active');
     });
-    
+
     // Remover active de todos los items del menú
     document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.remove('active');
     });
-    
+
     // Mostrar sección seleccionada
     const section = document.getElementById(`${sectionName}-section`);
     if (section) {
         section.classList.add('active');
     }
-    
+
     // Marcar item del menú como activo
     event.target.closest('.menu-item').classList.add('active');
-    
+
     // Actualizar título
     const titles = {
         'dashboard': 'Dashboard',
@@ -337,11 +337,11 @@ function showSection(sectionName) {
         'stock': 'Inventario',
         'config': 'Configuración'
     };
-    
+
     document.getElementById('page-title').textContent = titles[sectionName] || 'Panel Admin';
-    
+
     // Cargar datos de la sección
-    switch(sectionName) {
+    switch (sectionName) {
         case 'dashboard':
             loadDashboardData();
             break;
@@ -361,7 +361,7 @@ function showSection(sectionName) {
 
 async function loadOrdenes() {
     const result = await supabase.getOrdenes({ tienda_id: currentTienda.id });
-    
+
     if (result.success) {
         displayOrdenes(result.data);
     }
@@ -369,12 +369,12 @@ async function loadOrdenes() {
 
 function displayOrdenes(ordenes) {
     const container = document.getElementById('ordenes-list');
-    
+
     if (ordenes.length === 0) {
         container.innerHTML = '<p>No hay órdenes.</p>';
         return;
     }
-    
+
     let html = `
         <table class="table">
             <thead>
@@ -391,7 +391,7 @@ function displayOrdenes(ordenes) {
             </thead>
             <tbody>
     `;
-    
+
     ordenes.forEach(orden => {
         html += `
             <tr>
@@ -408,7 +408,7 @@ function displayOrdenes(ordenes) {
             </tr>
         `;
     });
-    
+
     html += '</tbody></table>';
     container.innerHTML = html;
 }
@@ -417,7 +417,7 @@ function displayOrdenes(ordenes) {
 
 async function loadStock() {
     const result = await supabase.getProductos({ tienda_id: currentTienda.id });
-    
+
     if (result.success) {
         displayStock(result.data);
     }
@@ -425,7 +425,7 @@ async function loadStock() {
 
 function displayStock(productos) {
     const container = document.getElementById('stock-list');
-    
+
     let html = `
         <table class="table">
             <thead>
@@ -440,12 +440,12 @@ function displayStock(productos) {
             </thead>
             <tbody>
     `;
-    
+
     productos.forEach(producto => {
         const stockStatus = producto.stock_actual <= producto.stock_minimo
             ? '<span class="badge badge-danger">Stock Bajo</span>'
             : '<span class="badge badge-success">OK</span>';
-            
+
         html += `
             <tr>
                 <td><strong>${producto.nombre}</strong></td>
@@ -459,7 +459,7 @@ function displayStock(productos) {
             </tr>
         `;
     });
-    
+
     html += '</tbody></table>';
     container.innerHTML = html;
 }

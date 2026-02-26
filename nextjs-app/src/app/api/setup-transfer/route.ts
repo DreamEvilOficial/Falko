@@ -2,9 +2,20 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 
 export async function GET() {
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get('secret');
+  if (process.env.NODE_ENV === 'production' && secret !== process.env.SETUP_SECRET) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
     return NextResponse.json({ success: true, message: 'Database not configured - skipping transfer setup' });
   }
+  const tbl = await db.get("SELECT to_regclass('public.ordenes') as r");
+  if (!tbl?.r) {
+    return NextResponse.json({ success: false, message: 'La tabla ordenes no existe.' });
+  }
+
   const results = [];
   try {
     // 1. Add columns to ordenes

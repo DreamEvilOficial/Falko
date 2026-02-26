@@ -13,7 +13,7 @@ async function setupDatabase() {
 
     // Crear tablas si no existen
     console.log('📦 Creando tablas...');
-    
+
     // Tabla configuracion
     await client.query(`
       CREATE TABLE IF NOT EXISTS configuracion (
@@ -48,27 +48,27 @@ async function setupDatabase() {
 
     // Configurar RLS
     console.log('🔐 Configurando RLS...');
-    
+
     await client.query('ALTER TABLE configuracion ENABLE ROW LEVEL SECURITY;');
     await client.query('ALTER TABLE banners ENABLE ROW LEVEL SECURITY;');
-    
+
     // Políticas para configuracion
     await client.query(`
       DROP POLICY IF EXISTS "Configuración pública" ON configuracion;
       CREATE POLICY "Configuración pública" ON configuracion FOR SELECT USING (true);
     `);
-    
+
     await client.query(`
       DROP POLICY IF EXISTS "Configuración escritura" ON configuracion;
       CREATE POLICY "Configuración escritura" ON configuracion FOR ALL USING (true);
     `);
-    
+
     // Políticas para banners
     await client.query(`
       DROP POLICY IF EXISTS "Banners activos públicos" ON banners;
       CREATE POLICY "Banners activos públicos" ON banners FOR SELECT USING (activo = true);
     `);
-    
+
     await client.query(`
       DROP POLICY IF EXISTS "Banners escritura" ON banners;
       CREATE POLICY "Banners escritura" ON banners FOR ALL USING (true);
@@ -78,7 +78,7 @@ async function setupDatabase() {
 
     // Insertar configuración inicial
     console.log('📝 Insertando configuración inicial...');
-    
+
     const configData = [
       {
         clave: 'anuncio_1',
@@ -86,7 +86,7 @@ async function setupDatabase() {
         descripcion: 'Primer mensaje del slider de anuncios'
       },
       {
-        clave: 'anuncio_2', 
+        clave: 'anuncio_2',
         valor: JSON.stringify(''),
         descripcion: 'Segundo mensaje del slider de anuncios'
       },
@@ -103,7 +103,7 @@ async function setupDatabase() {
             "link": "/productos"
           },
           {
-            "url": "https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&h=600&fit=crop", 
+            "url": "https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&h=600&fit=crop",
             "link": "/ofertas"
           }
         ]),
@@ -135,7 +135,7 @@ async function setupDatabase() {
 
     // Insertar banners de ejemplo
     console.log('🖼️ Insertando banners...');
-    
+
     const bannersData = [
       {
         titulo: 'Nueva Colección',
@@ -150,7 +150,7 @@ async function setupDatabase() {
         subtitulo: 'Hasta 50% de descuento',
         imagen_url: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&h=600&fit=crop',
         link_url: '/ofertas',
-        link_texto: 'Ver ofertas', 
+        link_texto: 'Ver ofertas',
         orden: 2
       }
     ];

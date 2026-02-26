@@ -4,8 +4,19 @@ import db from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    const { searchParams } = new URL(request.url);
+    const secret = searchParams.get('secret');
+    if (process.env.NODE_ENV === 'production' && secret !== process.env.SETUP_SECRET) {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
         return NextResponse.json({ success: true, message: 'Database not configured - skipping variants setup' });
+    }
+    // variants depend on productos table
+    const tbl = await db.get("SELECT to_regclass('public.productos') as r");
+    if (!tbl?.r) {
+        return NextResponse.json({ success: false, message: 'La tabla productos no existe.' });
     }
     try {
         const sql = `

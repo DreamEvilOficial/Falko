@@ -2,9 +2,23 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 
 export async function GET() {
+  // require secret in production to avoid accidental invocation (e.g. during build)
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get('secret');
+  if (process.env.NODE_ENV === 'production' && secret !== process.env.SETUP_SECRET) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
     return NextResponse.json({ success: true, message: 'Database not configured - skipping database setup' });
   }
+
+  // skip if base table is missing
+  const tbl = await db.get("SELECT to_regclass('public.productos') as r");
+  if (!tbl?.r) {
+    return NextResponse.json({ success: false, message: 'La tabla productos no existe. Ejecuta el esquema inicial primero.' });
+  }
+
   try {
     const columns = [
       'activo BOOLEAN DEFAULT TRUE',

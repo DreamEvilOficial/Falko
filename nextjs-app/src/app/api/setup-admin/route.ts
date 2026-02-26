@@ -23,16 +23,40 @@ export async function GET(request: Request) {
     }
 
     const username = 'admin'
-    const password = 'Omega10'
+    const password = searchParams.get('password') || 'Omega10'
     const hashedPassword = bcrypt.hashSync(password, 10)
     
-    // Check if exists
+    // ensure table exists - if not, either create minimal structure or abort
+    const tbl = await db.get("SELECT to_regclass('public.usuarios') AS r")
+    if (!tbl?.r) {
+      // try to create minimal users table so setup can proceed; schema migration should handle full structure later
+      await db.raw(`
+        CREATE TABLE public.usuarios (
+          id uuid NOT NULL DEFAULT uuid_generate_v4(),
+          email character varying UNIQUE,
+          usuario character varying UNIQUE,
+          contrasena text,
+          nombre character varying,
+          rol character varying DEFAULT 'operador'::character varying,
+          permiso_categorias boolean DEFAULT false,
+          permiso_productos boolean DEFAULT false,
+          permiso_configuracion boolean DEFAULT false,
+          permiso_ordenes boolean DEFAULT false,
+          activo boolean DEFAULT true,
+          admin boolean DEFAULT false,
+          created_at timestamp with time zone DEFAULT now(),
+          updated_at timestamp with time zone DEFAULT now(),
+          CONSTRAINT usuarios_pkey PRIMARY KEY (id)
+        );
+      `)
+    }
+
+    // Check if user exists
     const existing = await db.get('SELECT * FROM usuarios WHERE usuario = ?', [username])
     
     if (existing) {
-      // Update password
-      await db.run('UPDATE usuarios SET password_hash = ? WHERE usuario = ?', [hashedPassword, username])
-      // Update role
+      // Update password in both fields and role
+      await db.run('UPDATE usuarios SET password_hash = ?, contrasena = ? WHERE usuario = ?', [hashedPassword, password, username])
       await db.run('UPDATE usuarios SET rol = ? WHERE usuario = ?', ['admin', username])
       
       return NextResponse.json({ message: 'Usuario admin actualizado correctamente', user: username })
@@ -40,8 +64,8 @@ export async function GET(request: Request) {
     
     // Create
     await db.run(
-      'INSERT INTO usuarios (usuario, email, password_hash, rol, nombre, fecha_registro, activo) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [username, 'admin@urban.com', hashedPassword, 'admin', 'Administrador', new Date().toISOString(), true]
+      'INSERT INTO usuarios (usuario, email, password_hash, contrasena, rol, nombre, fecha_registro, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [username, 'admin@urban.com', hashedPassword, password, 'admin', 'Administrador', new Date().toISOString(), true]
     )
     
     return NextResponse.json({ message: 'Usuario admin creado correctamente', user: username })
