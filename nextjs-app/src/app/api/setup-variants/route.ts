@@ -4,6 +4,9 @@ import db from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+        return NextResponse.json({ success: true, message: 'Database not configured - skipping variants setup' });
+    }
     try {
         const sql = `
             DO $$

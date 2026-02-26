@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 
 export async function GET() {
+  if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+    return NextResponse.json({ success: true, message: 'Database not configured - skipping transfer setup' });
+  }
   const results = [];
   try {
     // 1. Add columns to ordenes

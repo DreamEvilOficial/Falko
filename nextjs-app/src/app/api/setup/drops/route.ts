@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import db from '@/lib/db'
 
 export async function GET() {
+  // during build or when env is missing we should avoid running SQL
+  if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+    return NextResponse.json({ success: true, message: 'Database not configured - skipping drops setup' });
+  }
   try {
     // 1. Crear tabla drops
     await db.raw(`

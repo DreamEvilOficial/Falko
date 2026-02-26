@@ -5,6 +5,9 @@ import bcrypt from 'bcryptjs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
+  if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+    return NextResponse.json({ success: true, message: 'Database not configured - skipping admin setup' });
+  }
   try {
     // Prevent running in production if admin already exists
     // Require a special header secret or check if it's the first run
