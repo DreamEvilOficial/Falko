@@ -1,0 +1,29 @@
+node_modules
+.next
+.env*.local
+.env
+.env.production
+.vercel
+*.log
+.DS_Store
+dist
+build
+
+# Security
+*.pem
+*.key
+*.crt
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testing
+coverage
+.nyc_output
+
+# Local config
+config.local.json
+secrets.json

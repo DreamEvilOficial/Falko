@@ -1,0 +1,6 @@
+M  src/app/checkout/page.tsx
+M  src/app/payment/page.tsx
+M  src/components/TransferPayment.tsx
+M  src/lib/data.ts
+M  tsconfig.tsbuildinfo
+?? status.txt

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Berta Moda</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1a1a1a;
+            --secondary-color: #f5f5f5;
+            --accent-color: #4a4a4a;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 2rem 0;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header p {
+            font-size: 0.875rem;
+            opacity: 0.7;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            padding: 0.875rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .menu-item-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar h1 {
+            font-size: 1.75rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        /* Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(15px);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .change {
+            font-size: 0.875rem;
+            color: var(--success-color);
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(15px);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Tables */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning-color);
+            color: var(--primary-color);
+        }
+
+        .badge-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .auth-card h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .auth-toggle a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Container (Login/Register) -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-card">
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form">
+                <h1>Iniciar Sesión</h1>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="login-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="login-password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar</button>
+                </form>
+                <div class="auth-toggle">
+                    ¿No tienes cuenta? <a href="#" onclick="showRegisterForm()">Regístrate aquí</a>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form hidden">
+                <h1>Crear Cuenta</h1>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>Nombre de la Tienda *</label>
+                        <input type="text" id="register-tienda" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tu Nombre *</label>
+                        <input type="text" id="register-nombre" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="register-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña *</label>
+                        <input type="password" id="register-password" class="form-control" minlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Crear Cuenta</button>
+                </form>
+                <div class="auth-toggle">
+                    ¿Ya tienes cuenta? <a href="#" onclick="showLoginForm()">Inicia sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 id="tienda-nombre">Mi Tienda</h2>
+                <p id="user-email">user@email.com</p>
+            </div>
+            <nav class="sidebar-menu">
+                <a class="menu-item active" onclick="showSection('dashboard')">
+                    <span class="menu-item-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a class="menu-item" onclick="showSection('productos')">
+                    <span class="menu-item-icon">👕</span>
+                    <span>Productos</span>
+                </a>
+                <a class="menu-item" onclick="showSection('ordenes')">
+                    <span class="menu-item-icon">📦</span>
+                    <span>Órdenes</span>
+                </a>
+                <a class="menu-item" onclick="showSection('stock')">
+                    <span class="menu-item-icon">📋</span>
+                    <span>Inventario</span>
+                </a>
+                <a class="menu-item" onclick="showSection('config')">
+                    <span class="menu-item-icon">⚙️</span>
+                    <span>Configuración</span>
+                </a>
+                <a class="menu-item" onclick="handleLogout()">
+                    <span class="menu-item-icon">🚪</span>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="user-menu">
+                    <span id="user-welcome">Bienvenido</span>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Ventas del Mes</h3>
+                        <div class="value">$0</div>
+                        <div class="change">+0% vs mes anterior</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Órdenes Pendientes</h3>
+                        <div class="value">0</div>
+                        <div class="change">0 nuevas hoy</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Productos Activos</h3>
+                        <div class="value">0</div>
+                        <div class="change">0 sin stock</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Clientes</h3>
+                        <div class="value">0</div>
+                        <div class="change">+0 este mes</div>
+                    </div>
+                </div>
+
+                <div class="content-section active">
+                    <h2>Órdenes Recientes</h2>
+                    <div id="recent-orders"></div>
+                </div>
+            </div>
+
+            <!-- Productos Section -->
+            <div id="productos-section" class="content-section">
+                <div class="section-header">
+                    <h2>Productos</h2>
+                    <button class="btn btn-primary" onclick="showProductModal()">+ Nuevo Producto</button>
+                </div>
+                <div id="productos-list"></div>
+            </div>
+
+            <!-- Órdenes Section -->
+            <div id="ordenes-section" class="content-section">
+                <div class="section-header">
+                    <h2>Órdenes</h2>
+                </div>
+                <div id="ordenes-list"></div>
+            </div>
+
+            <!-- Stock Section -->
+            <div id="stock-section" class="content-section">
+                <div class="section-header">
+                    <h2>Gestión de Inventario</h2>
+                </div>
+                <div id="stock-list"></div>
+            </div>
+
+            <!-- Configuración Section -->
+            <div id="config-section" class="content-section">
+                <div class="section-header">
+                    <h2>Configuración</h2>
+                </div>
+                
+                <h3>MercadoPago</h3>
+                <form onsubmit="saveConfig(event, 'mercadopago')">
+                    <div class="form-group">
+                        <label>Public Key</label>
+                        <input type="text" id="mp-public-key" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Access Token</label>
+                        <input type="text" id="mp-access-token" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>CVU</label>
+                        <input type="text" id="mp-cvu" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-success">Guardar Configuración</button>
+                </form>
+
+                <hr style="margin: 2rem 0;">
+
+                <h3>Contacto</h3>
+                <form onsubmit="saveConfig(event, 'contacto')">
+                    <div class="form-group">
+                        <label>WhatsApp</label>
+                        <input type="text" id="whatsapp" class="form-control" placeholder="+5491112345678">
+                    </div>
+                    <div class="form-group">
+                        <label>Instagram</label>
+                        <input type="url" id="instagram" class="form-control" placeholder="https://instagram.com/tu_tienda">
+                    </div>
+                    <button type="submit" class="btn btn-success">Guardar Contacto</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nuevo Producto</h2>
+                <button class="modal-close" onclick="closeProductModal()">×</button>
+            </div>
+            <form id="product-form" onsubmit="handleProductSubmit(event)">
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="product-name" class="form-control" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio *</label>
+                        <input type="number" id="product-price" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock *</label>
+                        <input type="number" id="product-stock" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="product-description" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>SKU/Código</label>
+                    <input type="text" id="product-sku" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../wp-content/themes/tienda-minimalista/js/supabase-client.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Ignorar carpetas legacy
+admin/
+wp-content/
+docs/
+database/
+supabase/
+
+# Ignorar archivos de documentación
+*.md
+!nextjs-app/README.md
+
+# Ignorar archivos de configuración
+.env
+.env.local
+.env*.local
