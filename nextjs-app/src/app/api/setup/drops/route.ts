@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server'
 import db from '@/lib/db'
 
 export async function GET() {
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get('secret');
+  if (process.env.NODE_ENV === 'production' && secret !== process.env.SETUP_SECRET) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   // during build or when env is missing we should avoid running SQL
   if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
     return NextResponse.json({ success: true, message: 'Database not configured - skipping drops setup' });
