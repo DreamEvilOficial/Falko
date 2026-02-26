@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 
-export async function GET() {
+export async function GET(request: Request) {
   // require secret in production to avoid accidental invocation (e.g. during build)
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get('secret');

@@ -3,7 +3,7 @@ import db from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
     if (process.env.NODE_ENV === 'production' && secret !== process.env.SETUP_SECRET) {
