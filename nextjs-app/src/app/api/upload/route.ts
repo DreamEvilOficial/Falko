@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const normalizedFolder = folder.toLowerCase();
     const bucketName =
       normalizedFolder === 'uploads'
-        ? 'public'
+        ? 'productos'
         : normalizedFolder === 'logos'
         ? 'tiendas'
         : normalizedFolder;
